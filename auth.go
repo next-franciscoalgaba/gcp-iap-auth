@@ -35,4 +35,9 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 	log.Printf("Authenticated %q (token expires at %v)\n", user.Email, expiresAt)
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(user)
+
+	if backend != nil && *backend != "" {
+		log.Printf("Proxying to backend %s", *backend)
+		http.Redirect(res, req, *backend, http.StatusSeeOther)
+	}
 }

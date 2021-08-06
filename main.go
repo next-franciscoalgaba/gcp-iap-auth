@@ -28,12 +28,7 @@ func main() {
 	http.HandleFunc("/healthz", healthzHandler)
 
 	if backend != nil && *backend != "" {
-		proxy, err := newProxy(*backend, *emailHeader)
-		if err != nil {
-			log.Fatal(err)
-		}
 		log.Printf("Proxying authenticated requests to backend %s", *backend)
-		http.HandleFunc("/", proxy.handler)
 	}
 
 	addr := net.JoinHostPort(*listenAddr, *listenPort)
