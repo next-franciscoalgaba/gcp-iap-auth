@@ -3,13 +3,40 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/imkira/gcp-iap-auth/jwt"
 	"google.golang.org/api/idtoken"
 )
+
+func resolveCloudRunHost(projectHash string) (string, error) {
+	// Request may be coming from domain in LB
+	// Get Cloud Run service name from env K_SERVICE set by GCP
+	svc := os.Getenv("K_SERVICE")
+	log.Printf("service name: %s", svc)
+
+	region, err := regionFromMetadata()
+	if err != nil {
+		return "", fmt.Errorf("[proxy] failed to infer region from metadata service: %v", err)
+	}
+
+	log.Printf("region response=%s", region)
+	rc, ok := cloudRunRegionCodes[region]
+	if !ok {
+		return "", fmt.Errorf("region %q is not handled", region)
+	}
+
+	return mkCloudRunHost(svc, rc, projectHash), nil
+
+}
+
+func mkCloudRunHost(svc, regionCode, projectHash string) string {
+	return fmt.Sprintf("%s-%s-%s.a.run.app", svc, projectHash, regionCode)
+}
 
 type userIdentity struct {
 	Subject string `json:"sub,omitempty"`
@@ -54,12 +81,19 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-
 	log.Printf("Authorization token retrieved successfully\n")
-
 	token.SetAuthHeader(req)
-
 	log.Printf("Authorization token header set: %s\n", token.AccessToken)
+
+	projectHash := os.Getenv("CLOUD_RUN_PROJECT_HASH")
+	host, err := resolveCloudRunHost(projectHash)
+	if err != nil {
+		log.Printf("Failed to retrieve host (%v)\n", err)
+		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	req.Header.Set("Host", host)
+	log.Printf("Host header set: %s\n", host)
 
 	log.Printf("Headers in request:\n")
 
