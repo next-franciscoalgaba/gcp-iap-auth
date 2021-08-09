@@ -54,6 +54,7 @@ func (p *proxy) handler(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Forbidden", http.StatusForbidden)
 		return
 	}
+	log.Printf("Authorization config retrieved\n")
 
 	token, err := ts.Token()
 	if err != nil {
@@ -62,11 +63,15 @@ func (p *proxy) handler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	log.Printf("Authorization token retrieved successfully\n")
+
 	if p.authorizationHeader != "" {
 		req.Header.Set(p.authorizationHeader, token.AccessToken)
 	} else {
 		token.SetAuthHeader(req)
 	}
+
+	log.Printf("Authorization token header set\n")
 
 	if p.emailHeader != "" {
 		req.Header.Set(p.emailHeader, claims.Email)
