@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/imkira/gcp-iap-auth/jwt"
+	"google.golang.org/api/idtoken"
 )
 
 type userIdentity struct {
@@ -35,4 +37,28 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 	log.Printf("Authenticated %q (token expires at %v)\n", user.Email, expiresAt)
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(user)
+
+	ctx := context.Background()
+	audience := *audiences
+	ts, err := idtoken.NewTokenSource(ctx, audience)
+	if err != nil {
+		log.Printf("Failed to authorize (%v)\n", err)
+		http.Error(res, "Forbidden", http.StatusForbidden)
+		return
+	}
+	log.Printf("Authorization config retrieved\n")
+
+	token, err := ts.Token()
+	if err != nil {
+		log.Printf("Failed to retrieve idToken (%v)\n", err)
+		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Authorization token retrieved successfully\n")
+
+	token.SetAuthHeader(req)
+
+	log.Printf("Authorization token header set: %s\n", token.AccessToken)
+
 }
