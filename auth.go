@@ -66,8 +66,7 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(user)
 
 	ctx := context.Background()
-	audience := *audiences
-	ts, err := idtoken.NewTokenSource(ctx, audience)
+	ts, err := idtoken.NewTokenSource(ctx, os.Getenv("TARGET_SERVICE_URL"))
 	if err != nil {
 		log.Printf("Failed to authorize (%v)\n", err)
 		http.Error(res, "Forbidden", http.StatusForbidden)
