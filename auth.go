@@ -61,4 +61,14 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 
 	log.Printf("Authorization token header set: %s\n", token.AccessToken)
 
+	log.Printf("Headers in request:\n")
+
+	// Loop over header names
+	for name, values := range req.Header {
+		// Loop over all values for the name.
+		for _, value := range values {
+			log.Printf(name, value)
+		}
+	}
+
 }
