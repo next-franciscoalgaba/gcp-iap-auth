@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -28,12 +29,10 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 		Subject: claims.Subject,
 		Email:   claims.Email,
 	}
+	res.Header().Add("email", user.Email)
+	res.Header().Add("subject", user.Subject)
 	expiresAt := time.Unix(claims.ExpiresAt, 0).UTC()
 	log.Printf("Authenticated %q (token expires at %v)\n", user.Email, expiresAt)
-	res.WriteHeader(http.StatusSeeOther)
-
-	if backend != nil && *backend != "" {
-		log.Printf("Proxying to backend %s", *backend)
-		http.Redirect(res, req, *backend, http.StatusSeeOther)
-	}
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(user)
 }
