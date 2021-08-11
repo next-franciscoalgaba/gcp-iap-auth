@@ -16,7 +16,10 @@ import (
 func resolveCloudRunHost(projectHash string) (string, error) {
 	// Request may be coming from domain in LB
 	// Get Cloud Run service name from env K_SERVICE set by GCP
-	svc := os.Getenv("K_SERVICE")
+	svc, exists := os.LookupEnv("K_SERVICE")
+	if !exists {
+		svc = "iap-auth-service"
+	}
 	log.Printf("service name: %s", svc)
 
 	region, err := regionFromMetadata()
