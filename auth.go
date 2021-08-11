@@ -94,8 +94,14 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	// req.Header.Set("Host", host)
-	// log.Printf("Host header set: %s\n", host)
+
+	host := os.Getenv("TARGET_SERVICE_URL")
+	req.Header.Set("Host", host)
+	req.Host = host
+	req.URL.Host = host
+	req.URL.Scheme = "https"
+
+	log.Printf("Host header set: %s\n", host)
 
 	log.Printf("Headers in request:\n")
 
