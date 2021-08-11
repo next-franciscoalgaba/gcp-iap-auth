@@ -84,15 +84,15 @@ func authHandler(res http.ResponseWriter, req *http.Request) {
 	token.SetAuthHeader(req)
 	log.Printf("Authorization token header set: %s\n", token.AccessToken)
 
-	projectHash := os.Getenv("CLOUD_RUN_PROJECT_HASH")
-	host, err := resolveCloudRunHost(projectHash)
+	// projectHash := os.Getenv("CLOUD_RUN_PROJECT_HASH")
+	// host, err := resolveCloudRunHost(projectHash)
 	if err != nil {
 		log.Printf("Failed to retrieve host (%v)\n", err)
 		http.Error(res, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	req.Header.Set("Host", host)
-	log.Printf("Host header set: %s\n", host)
+	// req.Header.Set("Host", host)
+	// log.Printf("Host header set: %s\n", host)
 
 	log.Printf("Headers in request:\n")
 
