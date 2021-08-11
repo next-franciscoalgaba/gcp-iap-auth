@@ -17,7 +17,7 @@ func resolveCloudRunHost(projectHash string) (string, error) {
 	// Request may be coming from domain in LB
 	// Get Cloud Run service name from env K_SERVICE set by GCP
 	svc, exists := os.LookupEnv("K_SERVICE")
-	if !exists {
+	if !exists || svc == "" {
 		svc = "iap-auth-service"
 	}
 	log.Printf("service name: %s", svc)
